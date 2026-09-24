@@ -77,7 +77,7 @@
     <div class="sos-wrap"><button class="sos" onclick="sos()">SOS</button><div class="muted" style="font-size:13px;margin-top:9px">Toque para preparar seu pedido de ajuda.</div></div>
     <div class="grid">
       <button class="action" onclick="show('timer')"><span>🛡️</span><strong>Me Acompanha</strong><small>Timer para sua atividade.</small></button>
-      <button class="action" onclick="show('call')"><span>📞</span><strong>Chamada Falsa</strong><small>Simulação dentro do site.</small></button>
+      <button class="action" onclick="show('call')"><span>📞</span><strong>Chamada Falsa</strong><small>Com toque e voz falada.</small></button>
       <button class="action" onclick="show('angels')"><span>👼</span><strong>Meus Anjos</strong><small>Até 5 contatos de confiança.</small></button>
       <button class="action" onclick="show('about')"><span>💗</span><strong>Suas Angels</strong><small>Mensagem especial do projeto.</small></button>
     </div>
@@ -96,7 +96,28 @@
 
   <section id="call" class="screen">
     <div class="top"><button class="tiny" onclick="show('home')">‹</button><h2 style="margin:0">Chamada Falsa</h2><span></span></div>
-    <div id="callSetup" class="card"><div class="field"><label>Nome de quem está ligando</label><input id="callerInput" value="Mãe"></div><div class="field"><label>Iniciar em</label><select id="delay"><option value="0">Agora</option><option value="5">5 segundos</option><option value="10">10 segundos</option></select></div><button class="btn" onclick="scheduleCall()">Agendar chamada falsa</button></div>
+    <div id="callSetup" class="card">
+      <div class="field"><label>Nome de quem está ligando</label><input id="callerInput" value="Mãe"></div>
+      <div class="field">
+        <label>Iniciar em</label>
+        <select id="delay">
+          <option value="0">Agora</option>
+          <option value="5">5 segundos</option>
+          <option value="10">10 segundos</option>
+          <option value="20">20 segundos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Áudio falado depois de atender</label>
+        <select id="voiceScript">
+          <option value="arrival">"Oi, você já está chegando?"</option>
+          <option value="pickup">"Estou te esperando na entrada."</option>
+          <option value="urgent">"Me liga de volta quando puder."</option>
+        </select>
+      </div>
+      <button class="btn" onclick="scheduleCall()">🔔 Testar / Agendar chamada falsa</button>
+      <p class="info" style="margin-top:12px">A chamada falsa toca dentro do site. Ao atender, uma voz em português reproduz o roteiro escolhido.</p>
+    </div>
     <div id="callUI" class="fake hidden"><div class="photo">👩</div><h2 id="caller">Mãe</h2><p class="muted" id="callStatus">Ligação recebida…</p><div class="calls"><button class="call decline" onclick="endCall()">✕</button><button class="call accept" onclick="answerCall()">☎</button></div></div>
   </section>
 
@@ -125,7 +146,18 @@
 </div>
 
 <div id="sosModal" class="modal">
-  <div class="sheet"><h3>🆘 Pedido de ajuda</h3><p id="sosState" class="muted">Obtendo localização…</p><div id="sosDetails" class="info">Aguarde.</div><button class="btn" style="margin-top:12px" onclick="shareSOS()">Compartilhar SOS</button><button class="btn secondary" onclick="openSMS()">Abrir SMS</button><button class="btn secondary" onclick="closeModal('sosModal')">Fechar</button></div>
+  <div class="sheet">
+    <h3>🆘 Pedido de ajuda</h3>
+    <p id="sosState" class="muted">Obtendo localização…</p>
+    <div id="sosDetails" class="info">Aguarde.</div>
+    <button class="btn" style="margin-top:12px" onclick="shareSOS()">📍 Compartilhar localização e SOS</button>
+    <button class="btn secondary" onclick="openSMS()">💬 Abrir SMS com localização</button>
+    <div id="sosCallArea" class="hidden" style="margin-top:12px">
+      <p style="margin:0 0 8px;font-weight:900">Depois de enviar, ligue para um Anjo:</p>
+      <div id="sosCallButtons"></div>
+    </div>
+    <button class="btn secondary" onclick="closeModal('sosModal')">Fechar</button>
+  </div>
 </div>
 
 <div id="settings" class="modal">
@@ -165,19 +197,70 @@ function renderAngels(){
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 function sos(){
-  openModal('sosModal');$('#sosState').textContent='Obtendo localização…';$('#sosDetails').textContent='Aguarde alguns segundos.';
+  openModal('sosModal');
+  $('#sosState').textContent='Obtendo localização…';
+  $('#sosDetails').textContent='Aguarde alguns segundos.';
+  $('#sosCallArea').classList.add('hidden');
+  $('#sosCallButtons').innerHTML='';
   if(!navigator.geolocation)return buildSOS(null);
-  navigator.geolocation.getCurrentPosition(p=>buildSOS({lat:p.coords.latitude,lng:p.coords.longitude}),()=>buildSOS(null),{enableHighAccuracy:true,timeout:9000});
+  navigator.geolocation.getCurrentPosition(
+    p=>buildSOS({lat:p.coords.latitude,lng:p.coords.longitude}),
+    ()=>buildSOS(null),
+    {enableHighAccuracy:true,timeout:9000,maximumAge:15000}
+  );
 }
 function buildSOS(loc){
   let map=loc?`https://maps.google.com/?q=${loc.lat},${loc.lng}`:'Localização indisponível';
   sosMessage=`🆘 SOS GUARDIÃ\n${user?.name||'Usuária'} pode precisar de ajuda.\nLocalização: ${map}`;
-  $('#sosState').textContent=loc?'Localização encontrada':'SOS preparado sem GPS';
+  $('#sosState').textContent=loc?'Localização encontrada — SOS pronto':'SOS preparado sem GPS';
   $('#sosDetails').innerHTML=esc(sosMessage).replace(/\n/g,'<br>');
   $('#status').textContent='SOS preparado';
+  renderSOSCallButtons();
 }
-async function shareSOS(){if(navigator.share){try{await navigator.share({title:'SOS Guardiã',text:sosMessage})}catch(e){}}else{await navigator.clipboard?.writeText(sosMessage);toast('Mensagem copiada.')}}
-function openSMS(){let phones=angels.map(a=>a.phone.replace(/[^\d+]/g,'')).join(',');location.href=`sms:${encodeURIComponent(phones)}?body=${encodeURIComponent(sosMessage)}`}
+function renderSOSCallButtons(){
+  const area=$('#sosCallArea'), box=$('#sosCallButtons');
+  box.innerHTML='';
+  if(!angels.length){
+    area.classList.remove('hidden');
+    box.innerHTML='<div class="info">Cadastre pelo menos um Anjo para aparecer aqui o botão de ligação.</div>';
+    return;
+  }
+  angels.forEach((a,i)=>{
+    const b=document.createElement('button');
+    b.className='btn danger';
+    b.style.marginTop=i?'9px':'0';
+    b.textContent=`📞 Ligar para ${a.name}`;
+    b.onclick=()=>callAngel(i);
+    box.appendChild(b);
+  });
+  area.classList.remove('hidden');
+}
+function callAngel(index){
+  const a=angels[index];
+  if(!a)return toast('Anjo não encontrado.');
+  const phone=a.phone.replace(/[^\d+]/g,'');
+  if(!phone)return toast('Telefone inválido.');
+  location.href=`tel:${phone}`;
+}
+async function shareSOS(){
+  if(!sosMessage)return toast('Aguarde a localização ser preparada.');
+  if(navigator.share){
+    try{
+      await navigator.share({title:'SOS Guardiã',text:sosMessage});
+      toast('Agora toque em ligar para um Anjo.');
+    }catch(e){}
+  }else{
+    await navigator.clipboard?.writeText(sosMessage);
+    toast('Mensagem copiada. Agora toque em ligar para um Anjo.');
+  }
+}
+function openSMS(){
+  if(!sosMessage)return toast('Aguarde a localização ser preparada.');
+  if(!angels.length)return toast('Cadastre um Anjo primeiro.');
+  const phone=angels[0].phone.replace(/[^\d+]/g,'');
+  const sep=/iPhone|iPad|iPod/i.test(navigator.userAgent)?'&':'?';
+  location.href=`sms:${phone}${sep}body=${encodeURIComponent(sosMessage)}`;
+}
 
 function startTimer(){
   if(timer)clearInterval(timer);let m=Number($('#duration').value);total=m*60;end=Date.now()+total*1000;$('#timerBox').classList.remove('hidden');$('#activityText').textContent=$('#activity').value;updateTimer();timer=setInterval(updateTimer,1000);$('#status').textContent='Acompanhamento ativo'
@@ -188,15 +271,94 @@ function updateTimer(){
 }
 function safe(){if(timer)clearInterval(timer);timer=null;$('#timerBox').classList.add('hidden');$('#status').textContent='Guardiã pronta';toast('Acompanhamento encerrado.')}
 
+let ringAudioContext=null, ringTimer=null, ringLoop=null;
+
+function ensureAudioContext(){
+  try{
+    if(!ringAudioContext){
+      ringAudioContext=new (window.AudioContext||window.webkitAudioContext)();
+    }
+    if(ringAudioContext.state==='suspended') ringAudioContext.resume();
+  }catch(e){}
+}
+function playRingPulse(){
+  if(!ringAudioContext)return;
+  try{
+    const now=ringAudioContext.currentTime;
+    [660,880].forEach((freq,idx)=>{
+      const osc=ringAudioContext.createOscillator();
+      const gain=ringAudioContext.createGain();
+      osc.type='sine';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,now);
+      gain.gain.exponentialRampToValueAtTime(0.055,now+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+0.35);
+      osc.connect(gain); gain.connect(ringAudioContext.destination);
+      osc.start(now+idx*0.03); osc.stop(now+0.42+idx*0.03);
+    });
+  }catch(e){}
+}
+function startRingtone(){
+  stopRingtone();
+  ensureAudioContext();
+  playRingPulse();
+  ringLoop=setInterval(playRingPulse,1150);
+  navigator.vibrate?.([350,250,350,600,350,250,350]);
+}
+function stopRingtone(){
+  if(ringLoop){clearInterval(ringLoop);ringLoop=null;}
+  navigator.vibrate?.(0);
+}
 function scheduleCall(){
-  let d=Number($('#delay').value)*1000;$('#caller').textContent=$('#callerInput').value.trim()||'Mãe';$('#callSetup').classList.add('hidden');toast(d?'Chamada agendada.':'Iniciando chamada…');
-  setTimeout(()=>{$('#callUI').classList.remove('hidden');navigator.vibrate?.([250,300,250])},d)
+  ensureAudioContext();
+  clearTimeout(ringTimer);
+  stopRingtone();
+  let d=Number($('#delay').value)*1000;
+  $('#caller').textContent=$('#callerInput').value.trim()||'Mãe';
+  $('#callStatus').textContent='Ligação recebida…';
+  $('#callSetup').classList.add('hidden');
+  $('#callUI').classList.add('hidden');
+  toast(d?'Chamada agendada.':'Iniciando chamada…');
+  ringTimer=setTimeout(()=>{
+    $('#callUI').classList.remove('hidden');
+    startRingtone();
+  },d);
+}
+function selectedVoiceText(){
+  const scripts={
+    arrival:'Oi! Tudo bem? Você já está chegando? Eu estou esperando você. Se precisar de alguma coisa, me avisa, tá bom?',
+    pickup:'Oi! Eu já cheguei e estou te esperando na entrada. Quando você estiver saindo, me avisa que eu encontro você.',
+    urgent:'Oi! Eu tentei falar com você. Quando puder, me liga de volta, tá bom? Eu estou esperando seu retorno.'
+  };
+  return scripts[$('#voiceScript').value]||scripts.arrival;
 }
 function answerCall(){
+  stopRingtone();
   $('#callStatus').textContent='Em ligação…';
-  if('speechSynthesis'in window){let u=new SpeechSynthesisUtterance('Oi! Tudo bem? Eu queria saber se você já está chegando. Se precisar, me liga de volta, tá bom?');u.lang='pt-BR';speechSynthesis.speak(u)}
+  if('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    let u=new SpeechSynthesisUtterance(selectedVoiceText());
+    u.lang='pt-BR';
+    u.rate=0.92;
+    u.pitch=1;
+    u.volume=1;
+    const voices=speechSynthesis.getVoices();
+    const pt=voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('pt-br'))||
+             voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('pt'));
+    if(pt)u.voice=pt;
+    speechSynthesis.speak(u);
+  }else{
+    toast('Este navegador não suporta voz falada.');
+  }
 }
-function endCall(){speechSynthesis?.cancel?.();$('#callUI').classList.add('hidden');$('#callSetup').classList.remove('hidden')}
+function endCall(){
+  clearTimeout(ringTimer);
+  stopRingtone();
+  speechSynthesis?.cancel?.();
+  $('#callUI').classList.add('hidden');
+  $('#callSetup').classList.remove('hidden');
+  $('#callStatus').textContent='Ligação recebida…';
+}
 
 renderAngels();
 if(user){$('#name').value=user.name||'';$('#email').value=user.email||'';enter()}else show('login');

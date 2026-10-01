@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FeS Pads - Ambient Studio & Octopad</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            950: '#050914',
+                            900: '#070d19',
+                            800: '#0f172a',
+                            700: '#1e293b',
+                            600: '#334155'
+                        },
+                        electric: {
+                            400: '#38bdf8',
+                            500: '#0284c7',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: #050914;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.12);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        .glass-card.active {
+            background: rgba(14, 165, 233, 0.18);
+            border-color: #38bdf8;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Neon Glow Effects */
+        .neon-glow {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        }
+
+        .neon-glow-lg {
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.4);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070d19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        /* Pad Button Styles */
+        .key-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .key-btn.active {
+            background: linear-gradient(135deg, #2563eb, #0284c7);
+            color: #ffffff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Octopad Visual FX */
+        .octo-pad {
+            transition: all 0.1s ease;
+        }
+        .octo-pad:active, .octo-pad.hit {
+            transform: scale(0.96);
+            background: rgba(56, 189, 248, 0.35) !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), inset 0 0 20px #38bdf8 !important;
+        }
+
+        /* Custom Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #0f172a;
+            border-radius: 8px;
+            height: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+            border: 2px solid #ffffff;
+            transition: transform 0.1s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Pulsing Audio Aura */
+        @keyframes aura-pulse {
+            0% { transform: scale(0.98); opacity: 0.2; }
+            50% { transform: scale(1.05); opacity: 0.45; }
+            100% { transform: scale(0.98); opacity: 0.2; }
+        }
+        .aura-bg {
+            animation: aura-pulse 6s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-[#050914] text-slate-100 selection:bg-electric-500 selection:text-white">
+
+    <!-- Audio Context Unlock Overlay Modal -->
+    <div id="unlock-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050914]/95 backdrop-blur-xl">
+        <div class="max-w-md w-full glass-panel rounded-3xl p-8 text-center border border-electric-400/30 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-16 -left-16 w-32 h-32 bg-electric-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-16 -right-16 w-32 h-32 bg-blue-600/20 rounded-full blur-2xl"></div>
+            
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-electric-500 to-blue-700 flex items-center justify-center shadow-lg shadow-electric-500/40">
+                <i class="fa-solid fa-compact-disc text-4xl text-white animate-spin" style="animation-duration: 8s;"></i>
+            </div>
+            
+            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">FeS Pads <span class="text-electric-400 text-lg font-medium block">Studio Ambient & Octopad</span></h1>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                Clique no botão abaixo para desbloquear o sistema de áudio continuo de alta fidelidade e bypass do modo silencioso do iOS.
+            </p>
+            
+            <button id="btn-unlock-audio" class="w-full py-4 px-6 bg-gradient-to-r from-electric-500 to-blue-600 hover:from-electric-400 hover:to-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-electric-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
+                <i class="fa-solid fa-power-off text-lg"></i>
+                <span>INICIAR ESTÚDIO DE ÁUDIO</span>
+            </button>
+            <p class="text-xs text-slate-500 mt-4"><i class="fa-solid fa-shield-halved mr-1"></i> Síntese sonora em tempo real via Web Audio API</p>
+        </div>
+    </div>
+
+    <!-- Application Header -->
+    <header class="border-b border-navy-700/60 bg-navy-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-electric-600 to-electric-400 flex items-center justify-center shadow-lg shadow-electric-500/30 border border-electric-400/40">
+                    <i class="fa-solid fa-sliders text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider text-white flex items-center gap-2">
+                        FeS <span class="text-electric-400 font-light">PADS</span>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold bg-electric-500/20 text-electric-400 rounded-full border border-electric-400/30">PRO v2.5</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Sintetizador Continuo & Octopad Studio</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Switches -->
+            <div class="flex bg-navy-950/80 p-1.5 rounded-2xl border border-navy-700/80">
+                <button id="tab-btn-pads" onclick="switchTab('pads')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-electric-600 to-electric-500 text-white shadow-md shadow-electric-500/20">
+                    <i class="fa-solid fa-wave-square"></i>
+                    <span>Pads Contínuos</span>
+                </button>
+                <button id="tab-btn-octopad" onclick="switchTab('octopad')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-cubes"></i>
+                    <span>Octopad Studio</span>
+                </button>
+            </div>
+
+            <!-- Audio Master Controls Header Status -->
+            <div class="hidden md:flex items-center gap-4">
+                <div id="status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-navy-800 border border-navy-700 text-xs font-mono text-slate-300">
+                    <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span id="status-text">PRONTO</span>
+                </div>
+                <button id="btn-master-mute" onclick="toggleMasterMute()" class="w-10 h-10 rounded-xl bg-navy-800 border border-navy-700 flex items-center justify-center text-slate-300 hover:text-electric-400 hover:border-electric-400/50 transition-all">
+                    <i id="mute-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- TAB 1: CONTINUOUS AMBIENT PADS -->
+        <section id="view-pads" class="space-y-6">
+            
+            <!-- Audio Visualizer & Aura Header -->
+            <div class="relative glass-panel rounded-3xl p-6 border border-electric-400/20 overflow-hidden shadow-2xl">
+                <div class="absolute inset-0 bg-gradient-to-r from-electric-600/10 via-transparent to-blue-600/10 pointer-events-none"></div>
+                <div class="absolute -top-24 -right-24 w-72 h-72 bg-electric-500/15 rounded-full blur-3xl aura-bg pointer-events-none"></div>
+
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+                    <!-- Currently Playing Info -->
+                    <div class="flex items-center gap-5 w-full lg:w-auto">
+                        <button id="btn-main-play" onclick="togglePadPlay()" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-electric-600 to-electric-400 hover:from-electric-500 hover:to-electric-300 text-white flex items-center justify-center text-2xl sm:text-3xl shadow-xl shadow-electric-500/40 transition-all transform active:scale-95 flex-shrink-0 border border-electric-300/30">
+                            <i id="main-play-icon" class="fa-solid fa-play ml-1"></i>
+                        </button>
+                        <div>
+                            <div class="text-xs uppercase tracking-widest font-bold text-electric-400 mb-1 flex items-center gap-2">
+                                <span id="preset-badge-icon">✨</span>
+                                <span id="preset-badge-name">Shimmer Celestial</span>
+                            </div>
+                            <div class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                                <span id="display-key">C</span>
+                                <span id="display-scale" class="text-lg font-medium text-slate-400 bg-navy-950/80 px-3 py-1 rounded-lg border border-navy-700">MAIOR</span>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1 flex items-center gap-3 font-mono">
+                                <span>CROSSFADE: 2.0s</span>
+                                <span>•</span>
+                                <span id="display-freq">130.81 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audio Oscilloscope Visualizer Canvas -->
+                    <div class="w-full lg:w-1/2 h-24 bg-navy-950/80 rounded-2xl border border-navy-700/80 overflow-hidden relative shadow-inner">
+                        <canvas id="visualizer-canvas" class="w-full h-full block"></canvas>
+                        <div class="absolute top-2 right-3 text-[10px] font-mono text-electric-400/70 tracking-widest uppercase">
+                            AUDIO OSCILLOSCOPE
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Matrix & Tonality Selector -->
+            <div class="glass-panel rounded-3xl p-6 border border-navy-700/80 space-y-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-navy-700/60">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-electric-400 shadow-sm shadow-electric-400"></div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">SELEÇÃO DE TOM DE PAD</h2>
+                    </div>
+
+                    <!-- Major / Minor Scale Toggle Switch -->
+                    <div class="flex items-center bg-navy-950 p-1 rounded-xl border border-navy-700 w-full sm:w-auto justify-center">
+                        <button id="scale-major" onclick="setScale('major')" class="flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition-all bg-electric-600 text-white shadow-md shadow-electric-500/30">
+                            MAIOR
+                        </button>
+                        <button id="scale-minor" onclick="setScale('minor')" class="flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+                            MENOR
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 12 Chromatic Key Buttons Grid -->
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    <button onclick="selectKey('C')" class="key-btn active glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>C</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">DÓ</span>
+                    </button>
+                    <button onclick="selectKey('C#')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>C#</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">DÓ#</span>
+                    </button>
+                    <button onclick="selectKey('D')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>D</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">RÉ</span>
+                    </button>
+                    <button onclick="selectKey('Eb')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>Eb</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">MIb</span>
+                    </button>
+                    <button onclick="selectKey('E')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>E</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">MI</span>
+                    </button>
+                    <button onclick="selectKey('F')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>F</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">FÁ</span>
+                    </button>
+                    <button onclick="selectKey('F#')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>F#</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">FÁ#</span>
+                    </button>
+                    <button onclick="selectKey('G')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>G</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">SOL</span>
+                    </button>
+                    <button onclick="selectKey('Ab')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>Ab</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">LÁb</span>
+                    </button>
+                    <button onclick="selectKey('A')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>A</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">LÁ</span>
+                    </button>
+                    <button onclick="selectKey('Bb')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>Bb</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">SIb</span>
+                    </button>
+                    <button onclick="selectKey('B')" class="key-btn glass-card py-4 rounded-2xl font-black text-xl border text-center flex flex-col items-center justify-center gap-1 group">
+                        <span>B</span>
+                        <span class="text-[10px] font-mono text-slate-400 group-[.active]:text-white/80">SI</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pad Presets Models Section -->
+            <div class="glass-panel rounded-3xl p-6 border border-navy-700/80 space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-navy-700/60">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-electric-400 shadow-sm shadow-electric-400"></div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">MODELOS DE PADS PRESET</h2>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono">8 MODELOS ATMOSFÉRICOS</span>
+                </div>
+
+                <!-- 8 Preset Options Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Preset 1 -->
+                    <div id="preset-card-shimmer" onclick="selectPreset('shimmer')" class="preset-card glass-card active rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">✨</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-electric-500/20 text-electric-400 border border-electric-400/30">CRISTAL</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Shimmer Celestial</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Agudos cristalinos, oitavador flutuante e reverb espacial amplo.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>AURA CELESTIAL</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 2 -->
+                    <div id="preset-card-ambiente" onclick="selectPreset('ambiente')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🌊</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-400/30">ORGÂNICO</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Ambiente Som</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Fundo aveludado e encorpado para momentos de ministração contínua.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>VELUDO PROFUNDO</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 3 -->
+                    <div id="preset-card-oracao" onclick="selectPreset('oracao')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🕊️</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-400/30">SUAVE</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Oração Tranquila</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Som ultra suave e aveludado, sem ataque, para momentos devocionais.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>PAZ CONTEMPLATIVA</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 4 -->
+                    <div id="preset-card-nuvem" onclick="selectPreset('nuvem')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">☁️</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-400/30">FLUTUANTE</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Nuvem Suave</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Ondas puras com corte de frequências para um som pacífico e relaxante.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>CORTE DE AGUDOS</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 5 -->
+                    <div id="preset-card-ethereal" onclick="selectPreset('ethereal')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">💎</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">VIDRO ETÉREO</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Ethereal Glass</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Textura harmônica cristalina e luminosa inspirada em órgãos etéreos.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>RESSONÂNCIA</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 6 -->
+                    <div id="preset-card-deepcalm" onclick="selectPreset('deepcalm')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🌌</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-400/30">SUB-GRAVE</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Deep Calm</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Grave sub-ambiente profundo com filtragem low-pass ultra macia.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>SUB LOW-PASS</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 7 -->
+                    <div id="preset-card-worship" onclick="selectPreset('worship')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🔥</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-400/30">MARCANTE</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Worship Quente</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Timbre clássico de louvor com corpo médio rico e sustento marcante.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>MÉDIOS ENCORPADOS</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Preset 8 -->
+                    <div id="preset-card-analog" onclick="selectPreset('analog')" class="preset-card glass-card rounded-2xl p-5 cursor-pointer relative overflow-hidden flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-2xl">🎹</span>
+                                <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">ANALÓGICO</span>
+                            </div>
+                            <h3 class="font-bold text-white group-hover:text-electric-400 transition-colors">Sintetizador Analógico</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Textura rica estilo synth clássico com filtro dinâmico de brilho.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-navy-700/50 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>DINÂMICO ANALOG</span>
+                            <i class="fa-solid fa-chevron-right text-xs text-electric-400"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Sound Sculpting Controls Panel -->
+            <div class="glass-panel rounded-3xl p-6 border border-navy-700/80 space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-navy-700/60">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-electric-400 shadow-sm shadow-electric-400"></div>
+                        <h2 class="text-lg font-bold text-white tracking-wide">MODELAGEM ACÚSTICA</h2>
+                    </div>
+                    <button onclick="resetPadSliders()" class="text-xs text-electric-400 hover:text-white font-mono flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-rotate-left"></i> RESTAURAR PADRÃO
+                    </button>
+                </div>
+
+                <!-- Sliders Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    
+                    <!-- Slider 1: Master Volume -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Volume Máster</span>
+                            <span id="val-pad-vol" class="font-mono text-electric-400">80%</span>
+                        </div>
+                        <input id="slider-pad-vol" type="range" min="0" max="100" value="80" oninput="updatePadParam('volume', this.value)" class="w-full">
+                    </div>
+
+                    <!-- Slider 2: Cutoff Brightness -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Filtro de Brilho</span>
+                            <span id="val-pad-cutoff" class="font-mono text-electric-400">2200 Hz</span>
+                        </div>
+                        <input id="slider-pad-cutoff" type="range" min="300" max="8000" value="2200" oninput="updatePadParam('cutoff', this.value)" class="w-full">
+                    </div>
+
+                    <!-- Slider 3: Sub Bass Layer -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Sub-Bass Extra</span>
+                            <span id="val-pad-sub" class="font-mono text-electric-400">60%</span>
+                        </div>
+                        <input id="slider-pad-sub" type="range" min="0" max="100" value="60" oninput="updatePadParam('sub', this.value)" class="w-full">
+                    </div>
+
+                    <!-- Slider 4: High Shimmer Octave -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Camada Aguda</span>
+                            <span id="val-pad-shimmer" class="font-mono text-electric-400">45%</span>
+                        </div>
+                        <input id="slider-pad-shimmer" type="range" min="0" max="100" value="45" oninput="updatePadParam('shimmer', this.value)" class="w-full">
+                    </div>
+
+                    <!-- Slider 5: Reverb Depth -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Reverb Espacial</span>
+                            <span id="val-pad-reverb" class="font-mono text-electric-400">70%</span>
+                        </div>
+                        <input id="slider-pad-reverb" type="range" min="0" max="100" value="70" oninput="updatePadParam('reverb', this.value)" class="w-full">
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: OCTOPAD STUDIO & METRONOME -->
+        <section id="view-octopad" class="space-y-6 hidden">
+            
+            <!-- Metronome Control Bar -->
+            <div class="glass-panel rounded-3xl p-6 border border-navy-700/80 flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <!-- LED Tempo Flasher -->
+                    <div class="relative flex items-center justify-center">
+                        <div id="metro-led" class="w-12 h-12 rounded-2xl bg-navy-950 border border-navy-700 flex items-center justify-center transition-all duration-100">
+                            <div class="w-4 h-4 rounded-full bg-slate-600 shadow-sm" id="metro-dot"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>METRÔNOMO STUDIO</span>
+                            <span id="metro-status-text" class="text-xs px-2 py-0.5 rounded bg-navy-950 text-slate-400 font-mono">PARADO</span>
+                        </h2>
+                        <div class="text-2xl font-black font-mono text-electric-400 flex items-center gap-2">
+                            <span id="display-bpm">120</span> <span class="text-xs text-slate-400 font-sans">BPM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metronome Controls & Tap Tempo -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto flex-1 max-w-xl">
+                    <div class="w-full space-y-1">
+                        <div class="flex justify-between text-xs font-mono text-slate-400">
+                            <span>40 BPM</span>
+                            <span>TEMPO</span>
+                            <span>220 BPM</span>
+                        </div>
+                        <input id="slider-bpm" type="range" min="40" max="220" value="120" oninput="setBPM(this.value)" class="w-full">
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button onclick="handleTapTempo()" class="flex-1 sm:flex-none px-4 py-3 rounded-xl bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-bold text-white transition-all active:scale-95 whitespace-nowrap">
+                            <i class="fa-solid fa-hand-pointer mr-1 text-electric-400"></i> TAP TEMPO
+                        </button>
+                        <button id="btn-toggle-metro" onclick="toggleMetronome()" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-electric-600 hover:bg-electric-500 text-xs font-bold text-white shadow-lg shadow-electric-500/20 transition-all active:scale-95 whitespace-nowrap">
+                            <i id="metro-play-icon" class="fa-solid fa-play mr-1"></i> INICIAR
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Octopad Main Layout Grid + Inspector Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- 9 Touch Pads Grid (2/3 width) -->
+                <div class="lg:col-span-2 glass-panel rounded-3xl p-6 border border-navy-700/80 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-navy-700/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-electric-400 shadow-sm shadow-electric-400"></div>
+                            <h2 class="text-lg font-bold text-white tracking-wide">PADS DE SÍNTESE RÍTMICA</h2>
+                        </div>
+                        <span class="text-xs text-slate-400 font-mono">SUPORTE TECLADO (1-9 / Q-C)</span>
+                    </div>
+
+                    <!-- 3x3 Octopad Button Grid -->
+                    <div class="grid grid-cols-3 gap-4 aspect-square max-w-xl mx-auto py-2">
+                        
+                        <!-- Pad 1 -->
+                        <div id="octo-pad-1" onclick="triggerOctopad(1)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">1</span>
+                                <i class="fa-solid fa-drum text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">REVERSE KICK</span>
+                                <span class="text-[9px] font-mono text-slate-400">Bumbo Invertido</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-1" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 2 -->
+                        <div id="octo-pad-2" onclick="triggerOctopad(2)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">2</span>
+                                <i class="fa-solid fa-meteor text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">REVERSE SWELL</span>
+                                <span class="text-[9px] font-mono text-slate-400">Swell Drop</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-2" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 3 -->
+                        <div id="octo-pad-3" onclick="triggerOctopad(3)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">3</span>
+                                <i class="fa-solid fa-bullhorn text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">SUB KICK</span>
+                                <span class="text-[9px] font-mono text-slate-400">Grave Sub</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-3" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 4 -->
+                        <div id="octo-pad-4" onclick="triggerOctopad(4)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">4</span>
+                                <i class="fa-solid fa-circle text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">SNARE</span>
+                                <span class="text-[9px] font-mono text-slate-400">Caixa Estúdio</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-4" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 5 -->
+                        <div id="octo-pad-5" onclick="triggerOctopad(5)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">5</span>
+                                <i class="fa-solid fa-[#0284c7] text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">RIMSHOT</span>
+                                <span class="text-[9px] font-mono text-slate-400">Aro da Caixa</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-5" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 6 -->
+                        <div id="octo-pad-6" onclick="triggerOctopad(6)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">6</span>
+                                <i class="fa-solid fa-hands-clapping text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">CLAP</span>
+                                <span class="text-[9px] font-mono text-slate-400">Palmas Studio</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-6" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 7 -->
+                        <div id="octo-pad-7" onclick="triggerOctopad(7)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">7</span>
+                                <i class="fa-solid fa-compact-disc text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">HI-HAT</span>
+                                <span class="text-[9px] font-mono text-slate-400">Chimbal Fechado</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-7" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 8 -->
+                        <div id="octo-pad-8" onclick="triggerOctopad(8)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">8</span>
+                                <i class="fa-solid fa-[#38bdf8] text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">CRASH</span>
+                                <span class="text-[9px] font-mono text-slate-400">Prato de Ataque</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-8" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 9 -->
+                        <div id="octo-pad-9" onclick="triggerOctopad(9)" class="octo-pad glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer border border-navy-700 hover:border-electric-400/50 relative overflow-hidden group">
+                            <div class="flex justify-between items-start">
+                                <span class="w-6 h-6 rounded-lg bg-navy-950 flex items-center justify-center text-[10px] font-mono text-electric-400 font-bold border border-navy-700">9</span>
+                                <i class="fa-solid fa-rotate text-xs text-slate-500 group-hover:text-electric-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-white">REV CYMBAL</span>
+                                <span class="text-[9px] font-mono text-slate-400">Prato Invertido</span>
+                            </div>
+                            <div class="w-full bg-navy-950 h-1.5 rounded-full overflow-hidden">
+                                <div id="pad-bar-9" class="bg-electric-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Pad Inspector & Fine Tuning Drawer (1/3 width) -->
+                <div class="glass-panel rounded-3xl p-6 border border-navy-700/80 space-y-6">
+                    <div class="flex items-center justify-between pb-3 border-b border-navy-700/60">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-sliders text-electric-400"></i>
+                            <h2 class="text-base font-bold text-white">INSPETOR DO PAD</h2>
+                        </div>
+                        <span id="inspector-pad-title" class="text-xs font-mono px-2.5 py-1 bg-electric-500/20 text-electric-400 rounded-lg border border-electric-400/30">PAD 1</span>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="p-3 bg-navy-950 rounded-xl border border-navy-800 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300">Som Selecionado:</span>
+                            <span id="inspector-sound-name" class="text-xs font-bold text-electric-400">Reverse Kick</span>
+                        </div>
+
+                        <!-- Pitch Tuning Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Afinação (Pitch)</span>
+                                <span id="val-pad-pitch" class="font-mono text-electric-400">0 semitons</span>
+                            </div>
+                            <input id="slider-pad-pitch" type="range" min="-12" max="12" value="0" step="1" oninput="updateOctopadParam('pitch', this.value)" class="w-full">
+                        </div>
+
+                        <!-- Pan L/R Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Panorama (Pan)</span>
+                                <span id="val-pad-pan" class="font-mono text-electric-400">Centro</span>
+                            </div>
+                            <input id="slider-pad-pan" type="range" min="-100" max="100" value="0" oninput="updateOctopadParam('pan', this.value)" class="w-full">
+                        </div>
+
+                        <!-- Pad Volume Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Volume do Pad</span>
+                                <span id="val-pad-single-vol" class="font-mono text-electric-400">90%</span>
+                            </div>
+                            <input id="slider-pad-single-vol" type="range" min="0" max="100" value="90" oninput="updateOctopadParam('volume', this.value)" class="w-full">
+                        </div>
+
+                        <!-- Pad Reverb Send Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-300">Envio de Reverb</span>
+                                <span id="val-pad-single-reverb" class="font-mono text-electric-400">30%</span>
+                            </div>
+                            <input id="slider-pad-single-reverb" type="range" min="0" max="100" value="30" oninput="updateOctopadParam('reverb', this.value)" class="w-full">
+                        </div>
+
+                        <div class="pt-4 border-t border-navy-800 text-[11px] text-slate-400 leading-relaxed">
+                            <i class="fa-solid fa-circle-info text-electric-400 mr-1"></i> Clique em qualquer pad para selecioná-lo no inspetor e personalizar a resposta acústica.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-navy-800/80 bg-navy-950/80 py-6 mt-12 text-center text-xs text-slate-500 font-mono">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>FeS PADS STUDIO © 2026 — SÍNTESE WEBAUDIO PRO</p>
+            <p class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                SISTEMA OPERACIONAL & SAFARI COMPATÍVEL
+            </p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT AUDIO ENGINE & INTERFACE CODE -->
+    <script>
+        // Global Application State
+        const state = {
+            audioCtx: null,
+            masterGain: null,
+            reverbNode: null,
+            analyserNode: null,
+            isMuted: false,
+            masterVolume: 0.8,
+            
+            // Pad Generator State
+            activeKey: 'C',
+            scale: 'major', // 'major' | 'minor'
+            activePreset: 'shimmer',
+            isPlayingPad: false,
+            currentPadVoice: null, // Active crossfade voice object
+            
+            // Pad Modeling Parameters
+            padParams: {
+                volume: 0.8,
+                cutoff: 2200,
+                subGain: 0.6,
+                shimmerGain: 0.45,
+                reverbGain: 0.7
+            },
+
+            // Octopad State
+            selectedOctopadIndex: 1,
+            octopads: {
+                1: { name: 'Reverse Kick', type: 'rev_kick', pitch: 0, pan: 0, volume: 0.9, reverb: 0.2 },
+                2: { name: 'Reverse Swell', type: 'rev_swell', pitch: 0, pan: 0, volume: 0.9, reverb: 0.4 },
+                3: { name: 'Sub Kick', type: 'sub_kick', pitch: 0, pan: 0, volume: 1.0, reverb: 0.1 },
+                4: { name: 'Snare', type: 'snare', pitch: 0, pan: 0, volume: 0.85, reverb: 0.3 },
+                5: { name: 'Rimshot', type: 'rimshot', pitch: 0, pan: 0, volume: 0.8, reverb: 0.25 },
+                6: { name: 'Clap', type: 'clap', pitch: 0, pan: 0, volume: 0.85, reverb: 0.35 },
+                7: { name: 'Hi-Hat', type: 'hihat', pitch: 0, pan: 0, volume: 0.75, reverb: 0.15 },
+                8: { name: 'Crash', type: 'crash', pitch: 0, pan: 0, volume: 0.8, reverb: 0.5 },
+                9: { name: 'Rev Cymbal', type: 'rev_cymbal', pitch: 0, pan: 0, volume: 0.85, reverb: 0.6 }
+            },
+
+            // Metronome State
+            metroInterval: null,
+            metroBpm: 120,
+            metroIsPlaying: false,
+            metroBeat: 0,
+            tapTimes: []
+        };
+
+        // Key Note Frequencies Map (Base Octave 3)
+        const noteFrequencies = {
+            'C': 130.81,  'C#': 138.59, 'D': 146.83,  'Eb': 155.56,
+            'E': 164.81,  'F': 174.61,  'F#': 185.00, 'G': 196.00,
+            'Ab': 207.65, 'A': 220.00,  'Bb': 233.08, 'B': 246.94
+        };
+
+        // Preset Sound Synthesis Profiles
+        const presets = {
+            shimmer: {
+                name: 'Shimmer Celestial',
+                icon: '✨',
+                waveform: 'sawtooth',
+                subWave: 'sine',
+                detune: 9,
+                defaultCutoff: 3800,
+                shimmerMult: 2.0, // 1 octave up
+                shimmerGain: 0.55,
+                subGain: 0.5,
+                reverbGain: 0.8,
+                noiseGain: 0.03
+            },
+            ambiente: {
+                name: 'Ambiente Som',
+                icon: '🌊',
+                waveform: 'triangle',
+                subWave: 'sine',
+                detune: 6,
+                defaultCutoff: 1800,
+                shimmerMult: 1.5, // 5th above
+                shimmerGain: 0.25,
+                subGain: 0.7,
+                reverbGain: 0.65,
+                noiseGain: 0.01
+            },
+            oracao: {
+                name: 'Oração Tranquila',
+                icon: '🕊️',
+                waveform: 'sine',
+                subWave: 'sine',
+                detune: 3,
+                defaultCutoff: 1200,
+                shimmerMult: 1.0,
+                shimmerGain: 0.1,
+                subGain: 0.8,
+                reverbGain: 0.75,
+                noiseGain: 0.0
+            },
+            nuvem: {
+                name: 'Nuvem Suave',
+                icon: '☁️',
+                waveform: 'triangle',
+                subWave: 'sine',
+                detune: 5,
+                defaultCutoff: 1500,
+                shimmerMult: 2.0,
+                shimmerGain: 0.2,
+                subGain: 0.6,
+                reverbGain: 0.7,
+                noiseGain: 0.02
+            },
+            ethereal: {
+                name: 'Ethereal Glass',
+                icon: '💎',
+                waveform: 'sine',
+                subWave: 'triangle',
+                detune: 12,
+                defaultCutoff: 4500,
+                shimmerMult: 2.0,
+                shimmerGain: 0.65,
+                subGain: 0.4,
+                reverbGain: 0.85,
+                noiseGain: 0.04
+            },
+            deepcalm: {
+                name: 'Deep Calm',
+                icon: '🌌',
+                waveform: 'sine',
+                subWave: 'sine',
+                detune: 2,
+                defaultCutoff: 800,
+                shimmerMult: 1.0,
+                shimmerGain: 0.0,
+                subGain: 0.95,
+                reverbGain: 0.6,
+                noiseGain: 0.0
+            },
+            worship: {
+                name: 'Worship Quente',
+                icon: '🔥',
+                waveform: 'sawtooth',
+                subWave: 'sine',
+                detune: 8,
+                defaultCutoff: 2400,
+                shimmerMult: 1.5,
+                shimmerGain: 0.4,
+                subGain: 0.65,
+                reverbGain: 0.65,
+                noiseGain: 0.02
+            },
+            analog: {
+                name: 'Sintetizador Analógico',
+                icon: '🎹',
+                waveform: 'sawtooth',
+                subWave: 'square',
+                detune: 14,
+                defaultCutoff: 3000,
+                shimmerMult: 2.0,
+                shimmerGain: 0.5,
+                subGain: 0.5,
+                reverbGain: 0.5,
+                noiseGain: 0.03
+            }
+        };
+
+        // Audio Context Setup with Mobile/iOS Safari Support
+        function initAudio() {
+            if (state.audioCtx) return;
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            state.audioCtx = new AudioContext({ latencyHint: 'interactive' });
+
+            // Master Gain Node
+            state.masterGain = state.audioCtx.createGain();
+            state.masterGain.gain.setValueAtTime(state.masterVolume, state.audioCtx.currentTime);
+
+            // Analyser Node for Visualizer
+            state.analyserNode = state.audioCtx.createAnalyser();
+            state.analyserNode.fftSize = 512;
+
+            // Reverb Impulse Response Generator (Algorithmic Reverb)
+            state.reverbNode = state.audioCtx.createConvolver();
+            state.reverbNode.buffer = createAlgorithmicReverbImpulse(3.5, 2.0);
+
+            // Audio Routing Graph
+            state.masterGain.connect(state.analyserNode);
+            state.analyserNode.connect(state.audioCtx.destination);
+
+            // Silent HTML5 audio trick to bypass iOS physical Silent Switch
+            playSilentAudioLoop();
+
+            // Hide unlock modal
+            document.getElementById('unlock-modal').style.display = 'none';
+
+            // Start Canvas Animation Loop
+            startVisualizer();
+
+            updateStatusBadge('PRONTO', 'emerald');
+        }
+
+        // iOS Silence Switch Bypass Helper
+        function playSilentAudioLoop() {
+            const silentAudio = new Audio();
+            // 1-second silent MP3 data URI
+            silentAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+            silentAudio.loop = true;
+            silentAudio.play().catch(() => {});
+        }
+
+        // Algorithmic Reverb Impulse Buffer Generator (3D Hall Spatial Reverb)
+        function createAlgorithmicReverbImpulse(duration, decay) {
+            const sampleRate = state.audioCtx.sampleRate;
+            const length = sampleRate * duration;
+            const impulse = state.audioCtx.createBuffer(2, length, sampleRate);
+            const left = impulse.getChannelData(0);
+            const right = impulse.getChannelData(1);
+
+            for (let i = 0; i < length; i++) {
+                const n = length - i;
+                const e = Math.pow(n / length, decay);
+                left[i] = (Math.random() * 2 - 1) * e;
+                right[i] = (Math.random() * 2 - 1) * e;
+            }
+            return impulse;
+        }
+
+        // Continuous Ambient Pad Synthesizer Engine
+        function createPadVoice(key, scale, presetKey) {
+            if (!state.audioCtx) return null;
+
+            const ctx = state.audioCtx;
+            const rootFreq = noteFrequencies[key] || 130.81;
+            const p = presets[presetKey];
+
+            // Voice Gain Container (Main output node for this voice)
+            const voiceGain = ctx.createGain();
+            voiceGain.gain.setValueAtTime(0.001, ctx.currentTime);
+
+            // Biquad Cutoff Filter Node
+            const filterNode = ctx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            filterNode.frequency.setValueAtTime(state.padParams.cutoff, ctx.currentTime);
+            filterNode.Q.setValueAtTime(1.5, ctx.currentTime);
+
+            // Reverb Send Node
+            const reverbSend = ctx.createGain();
+            reverbSend.gain.setValueAtTime(state.padParams.reverbGain, ctx.currentTime);
+
+            // Routing
+            filterNode.connect(voiceGain);
+            voiceGain.connect(state.masterGain);
+            voiceGain.connect(reverbSend);
+            reverbSend.connect(state.reverbNode);
+            state.reverbNode.connect(state.masterGain);
+
+            // Determine chord semitones (Root, 5th, Octave, 3rd Major/Minor)
+            const thirdInterval = (scale === 'minor') ? 3 : 4; // Minor 3rd vs Major 3rd
+            const chordIntervals = [0, 7, 12, 12 + thirdInterval];
+
+            const activeOscillators = [];
+
+            // 1. Core Polyphonic Chord Oscillators
+            chordIntervals.forEach((semitones, idx) => {
+                const freq = rootFreq * Math.pow(2, semitones / 12);
+
+                // Detuned Twin Pair
+                [-p.detune, p.detune].forEach((detuneVal) => {
+                    const osc = ctx.createOscillator();
+                    osc.type = p.waveform;
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    osc.detune.setValueAtTime(detuneVal, ctx.currentTime);
+
+                    const oscGain = ctx.createGain();
+                    oscGain.gain.setValueAtTime(0.12 / chordIntervals.length, ctx.currentTime);
+
+                    osc.connect(oscGain);
+                    oscGain.connect(filterNode);
+                    osc.start();
+                    activeOscillators.push(osc);
+                });
+            });
+
+            // 2. Extra Sub-Bass Generator
+            const subOsc = ctx.createOscillator();
+            subOsc.type = p.subWave || 'sine';
+            subOsc.frequency.setValueAtTime(rootFreq / 2, ctx.currentTime); // 1 Octave Down
+
+            const subGain = ctx.createGain();
+            subGain.gain.setValueAtTime(0.25 * state.padParams.subGain, ctx.currentTime);
+
+            subOsc.connect(subGain);
+            subGain.connect(state.masterGain); // Direct sub bass bypass filter for clean punch
+            subOsc.start();
+            activeOscillators.push(subOsc);
+
+            // 3. Shimmer High Octave Generator
+            const shimmerOsc = ctx.createOscillator();
+            shimmerOsc.type = 'sine';
+            shimmerOsc.frequency.setValueAtTime(rootFreq * p.shimmerMult, ctx.currentTime);
+
+            const shimmerGain = ctx.createGain();
+            shimmerGain.gain.setValueAtTime(0.15 * state.padParams.shimmerGain, ctx.currentTime);
+
+            shimmerOsc.connect(shimmerGain);
+            shimmerGain.connect(filterNode);
+            shimmerOsc.start();
+            activeOscillators.push(shimmerOsc);
+
+            return {
+                gainNode: voiceGain,
+                filterNode: filterNode,
+                subGainNode: subGain,
+                shimmerGainNode: shimmerGain,
+                oscillators: activeOscillators,
+                stop: function(fadeDuration = 2.0) {
+                    const now = ctx.currentTime;
+                    try {
+                        voiceGain.gain.cancelScheduledValues(now);
+                        subGain.gain.cancelScheduledValues(now);
+                        
+                        voiceGain.gain.setValueAtTime(voiceGain.gain.value, now);
+                        voiceGain.gain.linearRampToValueAtTime(0.0001, now + fadeDuration);
+
+                        subGain.gain.setValueAtTime(subGain.gain.value, now);
+                        subGain.gain.linearRampToValueAtTime(0.0001, now + fadeDuration);
+
+                        setTimeout(() => {
+                            activeOscillators.forEach(osc => {
+                                try { osc.stop(); osc.disconnect(); } catch(e){}
+                            });
+                        }, fadeDuration * 1000 + 100);
+                    } catch(e){}
+                }
+            };
+        }
+
+        // Smooth 2-Second Crossfade Controller
+        function playPadWithCrossfade() {
+            if (!state.audioCtx) initAudio();
+            if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+
+            const ctx = state.audioCtx;
+            const now = ctx.currentTime;
+            const fadeTime = 2.0; // Velvet 2 second crossfade transition
+
+            // Stop previous voice if active with crossfade
+            if (state.currentPadVoice) {
+                state.currentPadVoice.stop(fadeTime);
+            }
+
+            // Spawn new pad voice
+            const newVoice = createPadVoice(state.activeKey, state.scale, state.activePreset);
+            if (!newVoice) return;
+
+            // Ramp up new voice
+            newVoice.gainNode.gain.setValueAtTime(0.001, now);
+            newVoice.gainNode.gain.linearRampToValueAtTime(state.padParams.volume, now + fadeTime);
+
+            state.currentPadVoice = newVoice;
+            state.isPlayingPad = true;
+
+            updateUIState();
+        }
+
+        function stopPadWithCrossfade() {
+            if (state.currentPadVoice) {
+                state.currentPadVoice.stop(1.5);
+                state.currentPadVoice = null;
+            }
+            state.isPlayingPad = false;
+            updateUIState();
+        }
+
+        function togglePadPlay() {
+            if (state.isPlayingPad) {
+                stopPadWithCrossfade();
+            } else {
+                playPadWithCrossfade();
+            }
+        }
+
+        function selectKey(key) {
+            state.activeKey = key;
+            if (state.isPlayingPad) {
+                playPadWithCrossfade();
+            } else {
+                updateUIState();
+            }
+        }
+
+        function setScale(scaleType) {
+            state.scale = scaleType;
+            if (state.isPlayingPad) {
+                playPadWithCrossfade();
+            } else {
+                updateUIState();
+            }
+        }
+
+        function selectPreset(presetKey) {
+            if (!presets[presetKey]) return;
+            state.activePreset = presetKey;
+
+            // Sync preset default filter cutoff
+            state.padParams.cutoff = presets[presetKey].defaultCutoff;
+            document.getElementById('slider-pad-cutoff').value = state.padParams.cutoff;
+            document.getElementById('val-pad-cutoff').innerText = state.padParams.cutoff + ' Hz';
+
+            if (state.isPlayingPad) {
+                playPadWithCrossfade();
+            } else {
+                updateUIState();
+            }
+        }
+
+        // Synthesized Octopad Drum & FX Engine
+        function triggerOctopad(index) {
+            if (!state.audioCtx) initAudio();
+            if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+
+            const padData = state.octopads[index];
+            if (!padData) return;
+
+            // Update Inspector Selection
+            state.selectedOctopadIndex = index;
+            updateInspectorUI();
+
+            // Visual Press FX
+            const padEl = document.getElementById(`octo-pad-${index}`);
+            const barEl = document.getElementById(`pad-bar-${index}`);
+            if (padEl) {
+                padEl.classList.add('hit');
+                setTimeout(() => padEl.classList.remove('hit'), 150);
+            }
+            if (barEl) {
+                barEl.style.width = '100%';
+                setTimeout(() => barEl.style.width = '0%', 200);
+            }
+
+            const ctx = state.audioCtx;
+            const now = ctx.currentTime;
+
+            // Panner & Gain Node for Pad
+            const panner = ctx.createStereoPanner();
+            panner.pan.setValueAtTime(padData.pan / 100, now);
+
+            const padGain = ctx.createGain();
+            const totalVol = (padData.volume) * state.masterVolume;
+            padGain.gain.setValueAtTime(totalVol, now);
+
+            // Reverb Send
+            const padReverbGain = ctx.createGain();
+            padReverbGain.gain.setValueAtTime(padData.reverb, now);
+
+            panner.connect(padGain);
+            padGain.connect(state.masterGain);
+            padGain.connect(padReverbGain);
+            padReverbGain.connect(state.reverbNode);
+
+            // Pitch Multiplier from Semitones
+            const pitchMult = Math.pow(2, padData.pitch / 12);
+
+            // Sound Generation Logic per Type
+            switch(padData.type) {
+                
+                case 'sub_kick': { // Sub Kick Drum
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(120 * pitchMult, now);
+                    osc.frequency.exponentialRampToValueAtTime(35 * pitchMult, now + 0.15);
+
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                    osc.connect(panner);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                    break;
+                }
+
+                case 'rev_kick': { // Reverse Kick
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(30 * pitchMult, now);
+                    osc.frequency.exponentialRampToValueAtTime(100 * pitchMult, now + 0.35);
+
+                    padGain.gain.setValueAtTime(0.001, now);
+                    padGain.gain.linearRampToValueAtTime(totalVol, now + 0.35);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+                    osc.connect(panner);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                    break;
+                }
+
+                case 'rev_swell': { // Reverse Swell Drop
+                    const bufferSize = ctx.sampleRate * 0.8;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(200 * pitchMult, now);
+                    filter.frequency.exponentialRampToValueAtTime(2500 * pitchMult, now + 0.75);
+
+                    padGain.gain.setValueAtTime(0.001, now);
+                    padGain.gain.linearRampToValueAtTime(totalVol, now + 0.75);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    noise.start(now);
+                    noise.stop(now + 0.9);
+                    break;
+                }
+
+                case 'snare': { // Snare
+                    const toneOsc = ctx.createOscillator();
+                    toneOsc.type = 'triangle';
+                    toneOsc.frequency.setValueAtTime(180 * pitchMult, now);
+                    toneOsc.frequency.exponentialRampToValueAtTime(80 * pitchMult, now + 0.1);
+
+                    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+                    const nData = noiseBuf.getChannelData(0);
+                    for(let i=0; i<nData.length; i++) nData[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = noiseBuf;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(1000 * pitchMult, now);
+
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                    toneOsc.connect(panner);
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    toneOsc.start(now); noise.start(now);
+                    toneOsc.stop(now + 0.2); noise.stop(now + 0.2);
+                    break;
+                }
+
+                case 'rimshot': { // Rimshot
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800 * pitchMult, now);
+
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+                    osc.connect(panner);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                    break;
+                }
+
+                case 'clap': { // Clap
+                    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.25, ctx.sampleRate);
+                    const nData = noiseBuf.getChannelData(0);
+                    for(let i=0; i<nData.length; i++) nData[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = noiseBuf;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1200 * pitchMult, now);
+
+                    // Multi-burst envelope for clap hand echoes
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.setValueAtTime(totalVol * 0.8, now + 0.015);
+                    padGain.gain.setValueAtTime(totalVol * 0.9, now + 0.03);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    noise.start(now);
+                    noise.stop(now + 0.25);
+                    break;
+                }
+
+                case 'hihat': { // Hi-Hat
+                    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+                    const nData = noiseBuf.getChannelData(0);
+                    for(let i=0; i<nData.length; i++) nData[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = noiseBuf;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(7000 * pitchMult, now);
+
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    noise.start(now);
+                    noise.stop(now + 0.08);
+                    break;
+                }
+
+                case 'crash': { // Crash Cymbal
+                    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
+                    const nData = noiseBuf.getChannelData(0);
+                    for(let i=0; i<nData.length; i++) nData[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = noiseBuf;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(4000 * pitchMult, now);
+
+                    padGain.gain.setValueAtTime(totalVol, now);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    noise.start(now);
+                    noise.stop(now + 1.5);
+                    break;
+                }
+
+                case 'rev_cymbal': { // Reverse Cymbal
+                    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate);
+                    const nData = noiseBuf.getChannelData(0);
+                    for(let i=0; i<nData.length; i++) nData[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = noiseBuf;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(3000 * pitchMult, now);
+
+                    padGain.gain.setValueAtTime(0.001, now);
+                    padGain.gain.linearRampToValueAtTime(totalVol, now + 1.1);
+                    padGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+                    noise.connect(filter);
+                    filter.connect(panner);
+                    noise.start(now);
+                    noise.stop(now + 1.25);
+                    break;
+                }
+            }
+        }
+
+        // Metronome Studio
+        function setBPM(val) {
+            state.metroBpm = parseInt(val);
+            document.getElementById('display-bpm').innerText = state.metroBpm;
+            if (state.metroIsPlaying) {
+                stopMetronome();
+                startMetronome();
+            }
+        }
+
+        function toggleMetronome() {
+            if (state.metroIsPlaying) {
+                stopMetronome();
+            } else {
+                startMetronome();
+            }
+        }
+
+        function startMetronome() {
+            if (!state.audioCtx) initAudio();
+            state.metroIsPlaying = true;
+            state.metroBeat = 0;
+
+            const intervalMs = (60 / state.metroBpm) * 1000;
+            playMetroClick();
+            state.metroInterval = setInterval(playMetroClick, intervalMs);
+
+            document.getElementById('metro-status-text').innerText = 'TOCANDO';
+            document.getElementById('metro-status-text').className = 'text-xs px-2 py-0.5 rounded bg-electric-500/20 text-electric-400 font-mono border border-electric-400/30';
+            document.getElementById('metro-play-icon').className = 'fa-solid fa-square mr-1';
+        }
+
+        function stopMetronome() {
+            state.metroIsPlaying = false;
+            if (state.metroInterval) clearInterval(state.metroInterval);
+
+            document.getElementById('metro-status-text').innerText = 'PARADO';
+            document.getElementById('metro-status-text').className = 'text-xs px-2 py-0.5 rounded bg-navy-950 text-slate-400 font-mono';
+            document.getElementById('metro-play-icon').className = 'fa-solid fa-play mr-1';
+        }
+
+        function playMetroClick() {
+            if (!state.audioCtx) return;
+            const ctx = state.audioCtx;
+            const now = ctx.currentTime;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            const isAccent = (state.metroBeat % 4 === 0);
+            osc.frequency.setValueAtTime(isAccent ? 1200 : 800, now);
+
+            gain.gain.setValueAtTime(state.masterVolume * 0.6, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.connect(gain);
+            gain.connect(state.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.06);
+
+            // LED Visual Flash
+            const ledDot = document.getElementById('metro-dot');
+            if (ledDot) {
+                ledDot.className = isAccent ? 'w-4 h-4 rounded-full bg-electric-400 shadow-lg shadow-electric-400' : 'w-4 h-4 rounded-full bg-blue-500 shadow-md';
+                setTimeout(() => { ledDot.className = 'w-4 h-4 rounded-full bg-slate-600'; }, 80);
+            }
+
+            state.metroBeat++;
+        }
+
+        function handleTapTempo() {
+            const now = Date.now();
+            state.tapTimes.push(now);
+            if (state.tapTimes.length > 4) state.tapTimes.shift();
+
+            if (state.tapTimes.length > 1) {
+                const intervals = [];
+                for (let i = 1; i < state.tapTimes.length; i++) {
+                    intervals.push(state.tapTimes[i] - state.tapTimes[i - 1]);
+                }
+                const avgMs = intervals.reduce((a, b) => a + b) / intervals.length;
+                const bpm = Math.round(60000 / avgMs);
+                if (bpm >= 40 && bpm <= 220) {
+                    setBPM(bpm);
+                    document.getElementById('slider-bpm').value = bpm;
+                }
+            }
+        }
+
+        // Canvas Audio Oscilloscope Visualizer
+        function startVisualizer() {
+            const canvas = document.getElementById('visualizer-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            function renderFrame() {
+                requestAnimationFrame(renderFrame);
+
+                const width = canvas.width = canvas.parentElement.clientWidth;
+                const height = canvas.height = canvas.parentElement.clientHeight;
+
+                ctx.clearRect(0, 0, width, height);
+
+                if (!state.analyserNode || !state.isPlayingPad) {
+                    // Idle flat cyan line
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(0, height / 2);
+                    ctx.lineTo(width, height / 2);
+                    ctx.stroke();
+                    return;
+                }
+
+                const bufferLength = state.analyserNode.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                state.analyserNode.getByteTimeDomainData(dataArray);
+
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#38bdf8';
+                ctx.shadowColor = '#0284c7';
+                ctx.shadowBlur = 12;
+
+                ctx.beginPath();
+                const sliceWidth = width / bufferLength;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * height) / 2;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+
+                    x += sliceWidth;
+                }
+
+                ctx.lineTo(width, height / 2);
+                ctx.stroke();
+            }
+
+            renderFrame();
+        }
+
+        // UI & Sliders Syncing
+        function updatePadParam(param, value) {
+            const valNum = parseFloat(value);
+            
+            if (param === 'volume') {
+                state.padParams.volume = valNum / 100;
+                document.getElementById('val-pad-vol').innerText = value + '%';
+                if (state.currentPadVoice) {
+                    state.currentPadVoice.gainNode.gain.setValueAtTime(state.padParams.volume, state.audioCtx.currentTime);
+                }
+            }
+            else if (param === 'cutoff') {
+                state.padParams.cutoff = valNum;
+                document.getElementById('val-pad-cutoff').innerText = value + ' Hz';
+                if (state.currentPadVoice) {
+                    state.currentPadVoice.filterNode.frequency.setValueAtTime(valNum, state.audioCtx.currentTime);
+                }
+            }
+            else if (param === 'sub') {
+                state.padParams.subGain = valNum / 100;
+                document.getElementById('val-pad-sub').innerText = value + '%';
+                if (state.currentPadVoice) {
+                    state.currentPadVoice.subGainNode.gain.setValueAtTime(0.25 * state.padParams.subGain, state.audioCtx.currentTime);
+                }
+            }
+            else if (param === 'shimmer') {
+                state.padParams.shimmerGain = valNum / 100;
+                document.getElementById('val-pad-shimmer').innerText = value + '%';
+                if (state.currentPadVoice) {
+                    state.currentPadVoice.shimmerGainNode.gain.setValueAtTime(0.15 * state.padParams.shimmerGain, state.audioCtx.currentTime);
+                }
+            }
+            else if (param === 'reverb') {
+                state.padParams.reverbGain = valNum / 100;
+                document.getElementById('val-pad-reverb').innerText = value + '%';
+            }
+        }
+
+        function resetPadSliders() {
+            document.getElementById('slider-pad-vol').value = 80;
+            document.getElementById('slider-pad-cutoff').value = 2200;
+            document.getElementById('slider-pad-sub').value = 60;
+            document.getElementById('slider-pad-shimmer').value = 45;
+            document.getElementById('slider-pad-reverb').value = 70;
+
+            updatePadParam('volume', 80);
+            updatePadParam('cutoff', 2200);
+            updatePadParam('sub', 60);
+            updatePadParam('shimmer', 45);
+            updatePadParam('reverb', 70);
+        }
+
+        function updateOctopadParam(param, value) {
+            const pad = state.octopads[state.selectedOctopadIndex];
+            if (!pad) return;
+
+            if (param === 'pitch') {
+                pad.pitch = parseInt(value);
+                document.getElementById('val-pad-pitch').innerText = (pad.pitch > 0 ? '+' : '') + pad.pitch + ' semitons';
+            }
+            else if (param === 'pan') {
+                pad.pan = parseInt(value);
+                document.getElementById('val-pad-pan').innerText = pad.pan === 0 ? 'Centro' : (pad.pan < 0 ? `L ${Math.abs(pad.pan)}%` : `R ${pad.pan}%`);
+            }
+            else if (param === 'volume') {
+                pad.volume = parseInt(value) / 100;
+                document.getElementById('val-pad-single-vol').innerText = value + '%';
+            }
+            else if (param === 'reverb') {
+                pad.reverb = parseInt(value) / 100;
+                document.getElementById('val-pad-single-reverb').innerText = value + '%';
+            }
+        }
+
+        function updateInspectorUI() {
+            const pad = state.octopads[state.selectedOctopadIndex];
+            if (!pad) return;
+
+            document.getElementById('inspector-pad-title').innerText = `PAD ${state.selectedOctopadIndex}`;
+            document.getElementById('inspector-sound-name').innerText = pad.name;
+
+            document.getElementById('slider-pad-pitch').value = pad.pitch;
+            document.getElementById('val-pad-pitch').innerText = (pad.pitch > 0 ? '+' : '') + pad.pitch + ' semitons';
+
+            document.getElementById('slider-pad-pan').value = pad.pan;
+            document.getElementById('val-pad-pan').innerText = pad.pan === 0 ? 'Centro' : (pad.pan < 0 ? `L ${Math.abs(pad.pan)}%` : `R ${pad.pan}%`);
+
+            document.getElementById('slider-pad-single-vol').value = Math.round(pad.volume * 100);
+            document.getElementById('val-pad-single-vol').innerText = Math.round(pad.volume * 100) + '%';
+
+            document.getElementById('slider-pad-single-reverb').value = Math.round(pad.reverb * 100);
+            document.getElementById('val-pad-single-reverb').innerText = Math.round(pad.reverb * 100) + '%';
+        }
+
+        function toggleMasterMute() {
+            state.isMuted = !state.isMuted;
+            if (state.masterGain) {
+                state.masterGain.gain.setValueAtTime(state.isMuted ? 0 : state.masterVolume, state.audioCtx.currentTime);
+            }
+            document.getElementById('mute-icon').className = state.isMuted ? 'fa-solid fa-volume-xmark text-red-400' : 'fa-solid fa-volume-high';
+        }
+
+        function updateStatusBadge(text, color) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            txt.innerText = text;
+            dot.className = `w-2.5 h-2.5 rounded-full bg-${color}-400 shadow-sm shadow-${color}-400`;
+        }
+
+        function updateUIState() {
+            // Update Key Buttons Active Highlights
+            const keyButtons = document.querySelectorAll('.key-btn');
+            keyButtons.forEach(btn => {
+                const keyText = btn.querySelector('span').innerText.trim();
+                if (keyText === state.activeKey) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Update Major/Minor buttons
+            const majorBtn = document.getElementById('scale-major');
+            const minorBtn = document.getElementById('scale-minor');
+            if (state.scale === 'major') {
+                majorBtn.className = 'flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition-all bg-electric-600 text-white shadow-md shadow-electric-500/30';
+                minorBtn.className = 'flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+            } else {
+                minorBtn.className = 'flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition-all bg-electric-600 text-white shadow-md shadow-electric-500/30';
+                majorBtn.className = 'flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+            }
+
+            // Update Preset Cards
+            const presetCards = document.querySelectorAll('.preset-card');
+            presetCards.forEach(card => card.classList.remove('active'));
+            const activeCard = document.getElementById(`preset-card-${state.activePreset}`);
+            if (activeCard) activeCard.classList.add('active');
+
+            // Header Banner updates
+            document.getElementById('display-key').innerText = state.activeKey;
+            document.getElementById('display-scale').innerText = state.scale === 'major' ? 'MAIOR' : 'MENOR';
+            document.getElementById('display-freq').innerText = (noteFrequencies[state.activeKey] || 130.81) + ' Hz';
+
+            const pr = presets[state.activePreset];
+            if (pr) {
+                document.getElementById('preset-badge-icon').innerText = pr.icon;
+                document.getElementById('preset-badge-name').innerText = pr.name;
+            }
+
+            // Play/Pause Button
+            const playBtnIcon = document.getElementById('main-play-icon');
+            if (state.isPlayingPad) {
+                playBtnIcon.className = 'fa-solid fa-square ml-0';
+                updateStatusBadge('EM EXECUÇÃO', 'emerald');
+            } else {
+                playBtnIcon.className = 'fa-solid fa-play ml-1';
+                updateStatusBadge('PRONTO', 'electric');
+            }
+        }
+
+        function switchTab(tabName) {
+            const padsView = document.getElementById('view-pads');
+            const octopadView = document.getElementById('view-octopad');
+            const padsBtn = document.getElementById('tab-btn-pads');
+            const octopadBtn = document.getElementById('tab-btn-octopad');
+
+            if (tabName === 'pads') {
+                padsView.classList.remove('hidden');
+                octopadView.classList.add('hidden');
+                padsBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-electric-600 to-electric-500 text-white shadow-md shadow-electric-500/20';
+                octopadBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all';
+            } else {
+                padsView.classList.add('hidden');
+                octopadView.classList.remove('hidden');
+                octopadBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-electric-600 to-electric-500 text-white shadow-md shadow-electric-500/20';
+                padsBtn.className = 'px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all';
+            }
+        }
+
+        // Keyboard Shortcuts Mapping
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+
+            // Octopad 1-9 or Q, W, E, A, S, D, Z, X, C
+            const octoKeyMap = {
+                '1': 1, '2': 2, '3': 3,
+                '4': 4, '5': 5, '6': 6,
+                '7': 7, '8': 8, '9': 9,
+                'q': 1, 'w': 2, 'e': 3,
+                'a': 4, 's': 5, 'd': 6,
+                'z': 7, 'x': 8, 'c': 9
+            };
+
+            const keyLower = e.key.toLowerCase();
+            if (octoKeyMap[keyLower]) {
+                triggerOctopad(octoKeyMap[keyLower]);
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                togglePadPlay();
+            }
+        });
+
+        // Initialize Audio Trigger Button Listener
+        document.getElementById('btn-unlock-audio').addEventListener('click', () => {
+            initAudio();
+        });
+
+        // Window Load Setup
+        window.onload = function() {
+            updateUIState();
+            updateInspectorUI();
+        };
+    </script>
+</body>
+</html>
